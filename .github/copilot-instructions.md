@@ -1,0 +1,16 @@
+# Metix Azure Infrastructure Rules
+
+- Read [standards](../docs/standards.md) and [architecture](../docs/architecture.md) before proposing infrastructure changes.
+- Write workload infrastructure in Bicep and prefer Azure Verified Modules with explicit, verified versions.
+- Keep `infra/main.bicep` resource-group scoped. The resource group and automation identities are separate bootstrap prerequisites.
+- Default to Italy North. Require Environment, Owner, CostCenter, ManagedBy=IaC and Workload tags on taggable resources.
+- Never hard-code credentials, tenant IDs or subscription IDs. Never output keys, tokens or secrets.
+- Preserve disabled public access on Storage and Key Vault, private endpoints and private DNS links.
+- Preserve Key Vault RBAC, purge protection and soft delete; disable Storage Shared Key and public Blob access.
+- Do not create Public IPs or disable security controls for troubleshooting. Document an exception proposal instead.
+- Prefer managed identities and least-privilege RBAC for future application access. No application identity is included in this infrastructure-only demo.
+- Keep PR CI unprivileged. Do not use `pull_request_target` to execute PR content. No deployment from PR workflows.
+- Before editing infrastructure, state assumptions, affected files, a focused validation check and WAF tradeoffs. Ask for approval if the change expands the agreed architecture.
+- Run `pwsh -File scripts/Test-Repository.ps1` after changes. Do not silence failing controls to make a demo pass.
+- Update the relevant guides with actual behavior and limitations. Write user-facing documentation in Italian.
+- Preparing files is not authorization to create Azure resources, spend money, assign roles, merge PRs, push commits or delete resources. Ask explicitly before those actions.

@@ -1,0 +1,141 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment, after approval of scope and costs
+        required: true
+        type: choice
+        default: dev
+        options: [dev, test, prod]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: metix-deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: preview-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      CUSTOMER_CODE: ${{ vars.METIX_CUSTOMER_CODE }}
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install tested Bicep version
+        run: az bicep install --version v0.44.1
+      - name: Local checks on main commit
+        shell: pwsh
+        run: ./scripts/Test-Repository.ps1
+      - name: Check configuration
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:RESOURCE_GROUP)) { throw 'Configurare AZURE_RESOURCE_GROUP.' }
+          ./scripts/Test-WorkloadGoal.ps1 -GoalPath .artifacts/goal.json -ForProvisioning -Environment $env:TARGET_ENVIRONMENT -ExpectedCustomerCode $env:CUSTOMER_CODE
+      - uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Validate and preview release
+        shell: pwsh
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          az deployment group validate --resource-group $env:RESOURCE_GROUP --template-file .artifacts/main.json --parameters "@.artifacts/$env:TARGET_ENVIRONMENT.parameters.json" --validation-level ProviderNoRbac --output json > .artifacts/validate.json
+          if ($LASTEXITCODE -ne 0) { throw 'ARM validation fallita.' }
+          az deployment group what-if --resource-group $env:RESOURCE_GROUP --template-file .artifacts/main.json --parameters "@.artifacts/$env:TARGET_ENVIRONMENT.parameters.json" --validation-level ProviderNoRbac --no-pretty-print --output json > .artifacts/what-if.json
+          if ($LASTEXITCODE -ne 0) { throw 'What-If fallito.' }
+          $changes = Get-Content .artifacts/what-if.json -Raw | ConvertFrom-Json
+          if (@($changes.changes | Where-Object changeType -eq 'Delete').Count -gt 0) { throw 'What-If contiene Delete: fermare e riesaminare.' }
+          $manifest = @{ commit = $env:SOURCE_COMMIT; customerCode = $env:CUSTOMER_CODE; goalSha256 = (Get-FileHash .artifacts/goal.json -Algorithm SHA256).Hash; resourceGroup = $env:RESOURCE_GROUP; environment = $env:TARGET_ENVIRONMENT; subscriptionId = (az account show --query id --output tsv) }
+          if ($LASTEXITCODE -ne 0) { throw 'Subscription non verificabile.' }
+          $manifest | ConvertTo-Json | Set-Content .artifacts/manifest.json
+          "## Approvazione richiesta`nCliente: $env:CUSTOMER_CODE`nCommit: $env:SOURCE_COMMIT`nResource Group: $env:RESOURCE_GROUP`nLeggere goal.json e what-if.json nell'artefatto release-plan prima di approvare il job deploy. Verificare anche costi e criteri manuali predeploy." >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-plan
+          path: |
+            .artifacts/main.json
+            .artifacts/${{ inputs.environment }}.parameters.json
+            .artifacts/goal.json
+            .artifacts/manifest.json
+            .artifacts/validate.json
+            .artifacts/what-if.json
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
+
+  deploy:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      CUSTOMER_CODE: ${{ vars.METIX_CUSTOMER_CODE }}
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      SOURCE_COMMIT: ${{ github.sha }}
+      DEPLOYMENT_NAME: metix-${{ inputs.environment }}-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-plan
+          path: .artifacts
+      - name: Verify customer goal before Azure login
+        shell: pwsh
+        run: ./scripts/Test-WorkloadGoal.ps1 -GoalPath .artifacts/goal.json -ForProvisioning -Environment $env:TARGET_ENVIRONMENT -ExpectedCustomerCode $env:CUSTOMER_CODE
+      - uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Verify approved target and deploy exact artifact
+        shell: pwsh
+        run: |
+          $manifest = Get-Content .artifacts/manifest.json -Raw | ConvertFrom-Json
+          $subscription = az account show --query id --output tsv
+          if ($LASTEXITCODE -ne 0) { throw 'Subscription non verificabile.' }
+          if ($manifest.commit -ne $env:SOURCE_COMMIT -or $manifest.environment -ne $env:TARGET_ENVIRONMENT -or $manifest.resourceGroup -ne $env:RESOURCE_GROUP -or $manifest.subscriptionId -ne $subscription) { throw 'Target o commit diverso dal piano approvato.' }
+          if ($manifest.customerCode -cne $env:CUSTOMER_CODE -or $manifest.goalSha256 -ne (Get-FileHash .artifacts/goal.json -Algorithm SHA256).Hash) { throw 'Cliente o goal diverso dal piano approvato.' }
+          az deployment group create --name $env:DEPLOYMENT_NAME --resource-group $env:RESOURCE_GROUP --template-file .artifacts/main.json --parameters "@.artifacts/$env:TARGET_ENVIRONMENT.parameters.json" --mode Incremental --output json > .artifacts/deployment.json
+          if ($LASTEXITCODE -ne 0) { throw 'Deployment fallito: consultare le operazioni ARM.' }
+      - name: Management plane post-check
+        shell: pwsh
+        run: ./scripts/Test-DeployedResources.ps1 -DeploymentFile .artifacts/deployment.json
+      - name: Goal acceptance still requires evidence review
+        shell: pwsh
+        run: |
+          $goal = Get-Content .artifacts/goal.json -Raw | ConvertFrom-Json
+          "## Accettazione del goal`nProvisioning e suite tecniche completati. Non equivale ad accettazione del goal cliente. Il reviewer deve esaminare le evidenze per ogni requisito." >> $env:GITHUB_STEP_SUMMARY
+          foreach ($requirement in $goal.requirements | Where-Object { $_.verification.method -eq 'manual' }) {
+            "- $($requirement.id): verifica manuale da documentare nella fase $($requirement.verification.phase)." >> $env:GITHUB_STEP_SUMMARY
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: deployment-result
+          path: .artifacts/deployment.json
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7

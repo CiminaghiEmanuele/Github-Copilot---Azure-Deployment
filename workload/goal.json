@@ -1,0 +1,56 @@
+{
+  "$schema": "./goal.schema.json",
+  "schemaVersion": 1,
+  "purpose": "reference",
+  "customerCode": "metix-reference",
+  "workload": "demo",
+  "objective": "Dimostrare un processo IaC controllato per predisporre Key Vault e Storage Blob privati in un ambiente didattico dedicato, senza applicazioni o dati cliente.",
+  "owner": "metix-platform",
+  "environments": ["dev"],
+  "constraints": {
+    "dataClassification": "Solo configurazione infrastrutturale; nessun dato cliente o segreto di esempio.",
+    "region": "italynorth",
+    "network": "VNet dedicata con CIDR di esempio. La connettivita privata del client e la compatibilita con reti esistenti non sono incluse e vanno approvate separatamente.",
+    "existingResources": "RG workload preesistente e identita OIDC predisposte separatamente; nessun inventario live effettuato.",
+    "availabilityAndRecovery": "Nessuno SLO o RTO/RPO applicativo. Soft delete e versioning non sostituiscono un piano di backup e restore.",
+    "costBoundary": "Esempio senza budget approvato: provisioning bloccato finche' il goal non viene adattato a un cliente e i costi vengono approvati."
+  },
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "description": "Configurare un baseline PaaS privato senza accesso pubblico o Shared Key.",
+      "acceptance": "Il controllo statico blocca public access, Shared Key, rimozione di RBAC, purge protection, endpoint privati, tag e link DNS previsti.",
+      "verification": {
+        "phase": "predeploy",
+        "method": "automated",
+        "path": "scripts/Test-Baseline.ps1",
+        "evidence": "Log CI con build, guardrail e test negativi dello SHA della PR.",
+        "owner": "metix-platform"
+      }
+    },
+    {
+      "id": "REQ-002",
+      "description": "Verificare le principali proprieta di sicurezza dopo il provisioning.",
+      "acceptance": "Post-check live positivo per Key Vault e Storage: public access disabilitato, tag, PE approvati, RBAC/purge protection e impostazioni Storage conformi.",
+      "verification": {
+        "phase": "postdeploy",
+        "method": "automated",
+        "path": "scripts/Test-DeployedResources.ps1",
+        "evidence": "Run di deploy e log post-check collegati a commit, subscription, RG e ambiente effettivi.",
+        "owner": "metix-platform"
+      }
+    },
+    {
+      "id": "REQ-003",
+      "description": "Provare la risoluzione DNS e la connettivita dal client privato autorizzato.",
+      "acceptance": "I nomi di Key Vault e Blob risolvono agli IP delle NIC dei PE e il client privato raggiunge la porta 443. Non e' una prova di accesso ai dati.",
+      "verification": {
+        "phase": "postdeploy",
+        "method": "manual",
+        "path": "docs/operations.md",
+        "evidence": "Verbale di prova con client/rete, indirizzi attesi e osservati, data, target e referente; nessuna prova live ancora effettuata.",
+        "owner": "metix-network"
+      }
+    }
+  ]
+}

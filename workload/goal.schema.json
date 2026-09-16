@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Metix workload goal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "purpose", "customerCode", "workload", "objective", "owner", "environments", "constraints", "requirements"],
+  "properties": {
+    "$schema": { "const": "./goal.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "purpose": { "enum": ["reference", "customer"] },
+    "customerCode": { "type": "string", "pattern": "^[a-z][a-z0-9-]{2,39}$" },
+    "workload": { "type": "string", "pattern": "^[a-z0-9]{2,8}$" },
+    "objective": { "type": "string", "minLength": 30 },
+    "owner": { "type": "string", "minLength": 3 },
+    "environments": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["dev", "test", "prod"] }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataClassification", "region", "network", "existingResources", "availabilityAndRecovery", "costBoundary"],
+      "properties": {
+        "dataClassification": { "type": "string", "minLength": 5 },
+        "region": { "type": "string", "minLength": 3 },
+        "network": { "type": "string", "minLength": 20 },
+        "existingResources": { "type": "string", "minLength": 10 },
+        "availabilityAndRecovery": { "type": "string", "minLength": 20 },
+        "costBoundary": { "type": "string", "minLength": 20 }
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "acceptance", "verification"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^REQ-[0-9]{3}$" },
+          "description": { "type": "string", "minLength": 15 },
+          "acceptance": { "type": "string", "minLength": 20 },
+          "verification": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["phase", "method", "path", "evidence", "owner"],
+            "properties": {
+              "phase": { "enum": ["predeploy", "postdeploy"] },
+              "method": { "enum": ["automated", "manual"] },
+              "path": { "type": "string", "pattern": "^[a-zA-Z0-9_./-]+$" },
+              "evidence": { "type": "string", "minLength": 15 },
+              "owner": { "type": "string", "minLength": 3 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

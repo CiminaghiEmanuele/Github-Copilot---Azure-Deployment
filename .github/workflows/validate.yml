@@ -1,0 +1,25 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-validation:
+    name: Local validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install tested Bicep version
+        run: az bicep install --version v0.44.1
+      - name: Build, guardrails, negative tests and documentation
+        shell: pwsh
+        run: ./scripts/Test-Repository.ps1

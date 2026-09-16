@@ -1,0 +1,12 @@
+.artifacts/
+.tools/
+.env
+.env.*
+!.env.example
+*.local.bicepparam
+*.local.json
+*.log
+*.zip
+.azure/*
+!.azure/insights.json
+!.azure/infrastructure-plan.json

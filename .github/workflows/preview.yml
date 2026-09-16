@@ -1,0 +1,102 @@
+name: Azure Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Full 40-character commit SHA reviewed by the maintainer
+        required: true
+        type: string
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        default: dev
+        options: [dev, test, prod]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Validate commit format
+        shell: pwsh
+        env:
+          SOURCE_COMMIT: ${{ inputs.commit }}
+        run: |
+          if ($env:SOURCE_COMMIT -notmatch '^[0-9a-fA-F]{40}$') { throw 'Serve uno SHA completo.' }
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.commit }}
+          persist-credentials: false
+      - name: Install tested Bicep version
+        run: az bicep install --version v0.44.1
+      - name: Local checks without Azure credentials
+        shell: pwsh
+        run: ./scripts/Test-Repository.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preview-template
+          path: |
+            .artifacts/main.json
+            .artifacts/${{ inputs.environment }}.parameters.json
+            .artifacts/goal.json
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
+
+  preview:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: preview-${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      CUSTOMER_CODE: ${{ vars.METIX_CUSTOMER_CODE }}
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      SOURCE_COMMIT: ${{ inputs.commit }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: preview-template
+          path: .artifacts
+      - name: Check configuration
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:RESOURCE_GROUP)) { throw 'Configurare AZURE_RESOURCE_GROUP.' }
+          ./scripts/Test-WorkloadGoal.ps1 -GoalPath .artifacts/goal.json -ForProvisioning -BindingOnly -Environment $env:TARGET_ENVIRONMENT -ExpectedCustomerCode $env:CUSTOMER_CODE
+      - uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Validate and What-If only
+        shell: pwsh
+        run: |
+          az deployment group validate --resource-group $env:RESOURCE_GROUP --template-file .artifacts/main.json --parameters "@.artifacts/$env:TARGET_ENVIRONMENT.parameters.json" --validation-level ProviderNoRbac --output json > .artifacts/validate.json
+          if ($LASTEXITCODE -ne 0) { throw 'ARM validation fallita.' }
+          az deployment group what-if --resource-group $env:RESOURCE_GROUP --template-file .artifacts/main.json --parameters "@.artifacts/$env:TARGET_ENVIRONMENT.parameters.json" --validation-level ProviderNoRbac --no-pretty-print --output json > .artifacts/what-if.json
+          if ($LASTEXITCODE -ne 0) { throw 'What-If fallito.' }
+          "## Azure Preview`nCliente: $env:CUSTOMER_CODE`nCommit: $env:SOURCE_COMMIT`nEnvironment: $env:TARGET_ENVIRONMENT`nResource Group: $env:RESOURCE_GROUP`nEsaminare l'artefatto preview-results e collegare questa run alla PR. Nessun deployment eseguito." >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: preview-results
+          path: |
+            .artifacts/goal.json
+            .artifacts/validate.json
+            .artifacts/what-if.json
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7
