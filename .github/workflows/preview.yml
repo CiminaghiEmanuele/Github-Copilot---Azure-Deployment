@@ -59,7 +59,7 @@ jobs:
       id-token: write
     env:
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-      CUSTOMER_CODE: ${{ vars.METIX_CUSTOMER_CODE }}
+      CUSTOMER_CODE: ${{ vars.CUSTOMER_CODE }}
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       SOURCE_COMMIT: ${{ inputs.commit }}
     steps:

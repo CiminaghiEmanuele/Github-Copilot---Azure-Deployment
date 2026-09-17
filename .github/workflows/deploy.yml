@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: metix-deploy-${{ inputs.environment }}
+  group: factory-deploy-${{ inputs.environment }}
   cancel-in-progress: false
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       id-token: write
     env:
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-      CUSTOMER_CODE: ${{ vars.METIX_CUSTOMER_CODE }}
+      CUSTOMER_CODE: ${{ vars.CUSTOMER_CODE }}
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -89,10 +89,10 @@ jobs:
       id-token: write
     env:
       RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-      CUSTOMER_CODE: ${{ vars.METIX_CUSTOMER_CODE }}
+      CUSTOMER_CODE: ${{ vars.CUSTOMER_CODE }}
       TARGET_ENVIRONMENT: ${{ inputs.environment }}
       SOURCE_COMMIT: ${{ github.sha }}
-      DEPLOYMENT_NAME: metix-${{ inputs.environment }}-${{ github.run_id }}-${{ github.run_attempt }}
+      DEPLOYMENT_NAME: factory-${{ inputs.environment }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:

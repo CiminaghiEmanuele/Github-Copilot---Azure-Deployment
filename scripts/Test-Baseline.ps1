@@ -91,7 +91,7 @@ foreach ($templateName in @('main', 'services', 'private-access')) {
 }
 $violations = @(Get-BaselineViolations $templates)
 if ($violations.Count -gt 0) { throw ($violations -join "`n") }
-Write-Host 'PASS: guardrail Metix sul pattern compilato.'
+Write-Host 'PASS: guardrail il team sul pattern compilato.'
 
 if ($SelfTest) {
     $mutations = @{

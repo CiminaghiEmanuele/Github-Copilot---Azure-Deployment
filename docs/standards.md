@@ -1,7 +1,22 @@
-# Standard Metix Azure v0.1
+# Standard Azure Azure v0.1
 
-Baseline didattica derivata dalla proposta di workshop. Metix deve approvare i valori aziendali prima
-di riutilizzarla su workload reali. Il codice attuale implementa il perimetro in [architecture.md](architecture.md).
+Baseline derivata dalla proposta di workshop, riusata come primo pattern della [factory](factory.md).
+il team deve approvare i valori aziendali e il piano cliente prima di riutilizzarla su workload reali.
+Il codice attuale implementa il perimetro in [architecture.md](architecture.md).
+
+## Regole della factory
+
+- Un repository privato per cliente/workload; identita, trust OIDC, scope ed evidenze isolati per cliente e ambiente.
+- Goal osservabile, vincoli e criteri misurabili prima di scegliere i servizi. Approvazione umana del piano prima del codice.
+- Ogni requisito ha ID, criterio, fase, metodo, suite/runbook, evidenza attesa e responsabile. Non inventare esiti o approvazioni.
+- Prima del login Azure verificare goal cliente, ambiente ammesso e binding a CUSTOMER_CODE e parametri compilati.
+- Per nuove risorse estendere insieme suite reali, pipeline e registro fidato. La semplice citazione di un test non dimostra copertura.
+- Distinguere successo del provisioning da accettazione del goal: la seconda richiede tutte le evidenze pertinenti e review.
+
+Le regole della tabella seguente descrivono il pattern PaaS implementato. Per un altro scenario
+definire guardrail specifici attraverso una revisione esplicita; non imporre servizi non necessari
+e non eliminare controlli falliti per ottenere verde. Le protezioni di Storage e Key Vault restano
+obbligatorie quando tali servizi fanno parte del workload, salvo il processo formale delle eccezioni.
 
 ## Regole obbligatorie del kit
 
@@ -29,9 +44,9 @@ codice ostile e non sostituiscono Azure Policy o le protezioni di GitHub.
 
 | Risorsa | Pattern |
 | --- | --- |
-| Resource Group workload, bootstrap | `rg-metix-<workload>-<env>-itn` |
-| VNet | `vnet-metix-<workload>-<env>-itn` |
-| Log Analytics | `law-metix-<workload>-<env>-itn` |
+| Resource Group workload, bootstrap | `rg-workload-<workload>-<env>-itn` |
+| VNet | `vnet-workload-<workload>-<env>-itn` |
+| Log Analytics | `law-workload-<workload>-<env>-itn` |
 | Key Vault | `kv-<workload>-<env>-<hash6>` |
 | Storage | `st<workload><env><hash8>` |
 | Endpoint privati | `pe-<vault>` e `pe-<storage>-blob` |
@@ -84,7 +99,10 @@ Un'eccezione approvata che cambia l'architettura richiede modifica di codice, te
 
 ## Controlli e limiti
 
-`Test-Repository.ps1` compila i file, controlla i parametri, verifica il contratto dei wrapper AVM e i link locali.
+`Test-Repository.ps1` compila i file, controlla i parametri, valida il goal, verifica il contratto dei wrapper AVM e i link locali.
+`Test-WorkloadGoal.ps1` verifica schema, riferimenti e registro delle suite; con `-ForProvisioning`
+controlla anche cliente/ambiente/parametri. Non esegue i test citati nel JSON e non valuta semanticamente
+il requisito: una review deve verificare che le asserzioni della suite provino il criterio di accettazione.
 `Test-Baseline.ps1` legge JSON compilato, non interpreta genericamente tutte le espressioni ARM:
 i valori di sicurezza devono restare letterali per essere verificabili. Sette mutazioni in memoria provano
 che violazioni rappresentative vengono bloccate. Non sono una certificazione completa dei moduli AVM.
@@ -94,6 +112,7 @@ e accesso ai dati richiedono verifiche live. Integrare scanning IaC e segreti ne
 
 ## Evoluzione
 
-Approfondire region ammesse per servizio, naming multi-cliente, ruoli custom, policy-as-code,
-backup/restore, alert operativi, budget, catalogo moduli e gestione delle eccezioni.
+La separazione dei repository e il contratto del goal sono implementati come processo e gate locali;
+onboarding remoto e prove Azure restano da eseguire. Approfondire region ammesse per servizio,
+ruoli custom, policy-as-code, backup/restore, alert operativi, budget, catalogo moduli e gestione delle eccezioni.
 Consultare [workshop](workshop.md) e [consegna](handover.md).

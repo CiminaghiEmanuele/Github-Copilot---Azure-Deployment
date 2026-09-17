@@ -1,5 +1,10 @@
-# Metix Azure Infrastructure Rules
+# Azure Infrastructure Rules
 
+- This is a template for one private repository per customer/workload. Read [factory](../docs/factory.md) and [goal](../workload/goal.json) before customer-specific work.
+- Start from the customer's observable goal, constraints and measurable acceptance criteria. Do not force the included private-PaaS demo onto unrelated workloads.
+- Propose architecture and tests before code. Require human approval of the plan; never write self-approval or fabricated passing evidence into a goal or report.
+- Keep identities, OIDC trust, scopes, configuration and evidence isolated per customer/environment. A goal customer code must match CUSTOMER_CODE in the protected environment.
+- New workloads require corresponding security and functional tests. Extend and review the actual suites, pipeline wiring and goal validator together; a reference to a test file is not proof of coverage.
 - Read [standards](../docs/standards.md) and [architecture](../docs/architecture.md) before proposing infrastructure changes.
 - Write workload infrastructure in Bicep and prefer Azure Verified Modules with explicit, verified versions.
 - Keep `infra/main.bicep` resource-group scoped. The resource group and automation identities are separate bootstrap prerequisites.

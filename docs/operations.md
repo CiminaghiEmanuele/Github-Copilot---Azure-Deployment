@@ -11,6 +11,11 @@ disabilitazione di controlli, aumento di privilegi o creazione di Public IP.
 | Restore AVM fallisce | Connettivita/proxy verso MCR, versione Bicep | Correggere proxy o rete; non sostituire moduli con versioni casuali |
 | BCP037/BCP053 | Parametro/output non presente nella versione fissata | Leggere contratto AVM e correggere il wrapper |
 | Linter/guardrail fallisce | Primo errore, diff e valori compilati | Correggere il requisito/codice; non abbassare severita |
+| Goal `reference` rifiutato | Scopo del repository e piano cliente | Completare onboarding e requisiti reali; non cambiare solo purpose per aggirare il gate |
+| Customer code non corrisponde | Goal e variabile protetta CUSTOMER_CODE | Verificare con l'amministratore repository/tenant/subscription/RG; non ricopiare valori da altri clienti |
+| Goal/parametri incoerenti | Workload, owner, regione e ambiente compilati | Allineare al piano approvato e ripetere build, review e preview |
+| Suite non collegata o sconosciuta in preview | Registro fidato su main, pipeline e test candidati | Qualificare la suite con PR dedicata prima di usarla; non caricare script PR nel job autenticato |
+| Hash goal o manifest non corrisponde | Artefatti, run e variabili target | Fermare il rilascio e rigenerare un piano revisionato; non modificare artefatti a mano |
 | CI manca sulla PR | Actions abilitate, workflow presente, approvazione run fork | Configurare repo e policy delle Actions |
 | OIDC non trova federazione | Issuer, audience, subject environment, client ID, tenant | Confrontare i valori del bootstrap e attendere propagazione |
 | `AuthorizationFailed` | Identity usata, scope e azione nel messaggio | Far correggere il ruolo minimo all'amministratore |
@@ -23,10 +28,11 @@ disabilitazione di controlli, aumento di privilegi o creazione di Public IP.
 | DNS privato non risolve | Zone link, zone group, forwarding, cache DNS | Correggere DNS dalla rete connessa |
 | LAW senza eventi | Diagnostic settings, attivita reale del servizio e latenza ingestione | Generare evento autorizzato e attendere tempi di servizio |
 | Post-check fallisce dopo deploy | Stato ARM e proprieta reali | Risorse possono gia' esistere; aprire correzione senza rollback automatico |
+| Deploy verde ma requisito non provato | Matrice goal/test e prove manuali | Lasciare l'accettazione pendente e completare il test; non registrare un esito sintetico |
 
 ## Analizzare un deployment fallito
 
-Azure Portal -> Resource Group workload -> Deployments -> nome `metix-...` -> Operation details.
+Azure Portal -> Resource Group workload -> Deployments -> nome `factory-...` -> Operation details.
 Annotare error code, resource type e correlation ID nel canale interno autorizzato.
 Non pubblicare log integrali, inventari o identificativi in issue pubbliche.
 

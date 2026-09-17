@@ -3,8 +3,12 @@ description: "Use when editing GitHub Actions, OIDC authentication, preview work
 applyTo: ".github/workflows/*.yml"
 ---
 
-# Delivery Metix
+# Delivery Azure
 
+- One customer/workload per repository. Validate the goal and protected CUSTOMER_CODE binding before Azure login.
+- The reference goal cannot be provisioned. Bind the customer code and goal hash to the same artifact, commit and Azure target that the reviewer approved.
+- Authenticated preview must use the goal validator and schema from the trusted workflow commit, not candidate scripts or schemas from a PR.
+- Register new automated verification suites only together with reviewed pipeline wiring and negative tests; never execute a command supplied by the goal JSON.
 - Pin actions to complete commit SHAs and update them through reviewed PRs.
 - Set `contents: read` and grant `id-token: write` only to authenticated jobs.
 - Never grant Azure credentials to PR build jobs or run PR scripts inside authenticated jobs.

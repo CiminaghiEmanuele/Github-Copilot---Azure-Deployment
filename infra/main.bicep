@@ -48,7 +48,7 @@ var uniqueSuffix = take(uniqueString(resourceGroup().id, workload), 8)
 module monitoring './modules/monitoring.bicep' = {
   name: 'monitoring-${environment}'
   params: {
-    name: 'law-metix-${suffix}'
+    name: 'law-workload-${suffix}'
     location: location
     tags: tags
     retentionInDays: logRetentionInDays
@@ -58,7 +58,7 @@ module monitoring './modules/monitoring.bicep' = {
 module virtualNetwork './modules/network.bicep' = {
   name: 'network-${environment}'
   params: {
-    name: 'vnet-metix-${suffix}'
+    name: 'vnet-workload-${suffix}'
     location: location
     tags: tags
     network: network

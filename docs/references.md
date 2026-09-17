@@ -47,4 +47,4 @@ funzionalita del piano GitHub e contratto della versione AVM fissata, non solo l
 
 Il riferimento a documentazione ufficiale non implica approvazione o supporto commerciale di questo
 specifico pattern. Il repository non include una licenza di redistribuzione scelta automaticamente:
-concordare con Metix/V-Valley proprieta, licenza e supporto prima di pubblicarlo o riutilizzarlo esternamente.
+concordare con il proprietario del repository proprieta, licenza e supporto prima di pubblicarlo o riutilizzarlo esternamente.

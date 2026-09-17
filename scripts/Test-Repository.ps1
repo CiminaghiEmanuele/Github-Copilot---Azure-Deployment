@@ -16,9 +16,27 @@ function Invoke-AzChecked {
 }
 
 if (-not (Get-Command az -ErrorAction SilentlyContinue)) { throw 'Installare Azure CLI >= 2.76 e Bicep 0.44.1. Vedere docs/getting-started.md.' }
-foreach ($source in Get-ChildItem (Join-Path $root 'infra') -Recurse -Filter '*.bicep') {
+$demoSources = @(
+    Get-Item (Join-Path $root 'infra/main.bicep')
+    Get-ChildItem (Join-Path $root 'infra/modules') -Filter '*.bicep'
+)
+foreach ($source in $demoSources) {
     Invoke-AzChecked @('bicep', 'build', '--file', $source.FullName, '--outfile', (Join-Path $artifacts "$($source.BaseName).json"))
     Write-Host "PASS: build $($source.Name)"
+}
+
+$patternRoot = Join-Path $root 'infra/patterns'
+if (Test-Path $patternRoot) {
+    foreach ($source in Get-ChildItem $patternRoot -Recurse -Filter '*.bicep') {
+        $relativeName = [System.IO.Path]::GetRelativePath($root, $source.FullName).Replace([System.IO.Path]::DirectorySeparatorChar, '-')
+        Invoke-AzChecked @('bicep', 'build', '--file', $source.FullName, '--outfile', (Join-Path $artifacts "$relativeName.json"))
+        Write-Host "PASS: build pattern $([System.IO.Path]::GetRelativePath($root, $source.FullName))"
+    }
+    foreach ($source in Get-ChildItem $patternRoot -Recurse -Filter '*.bicepparam') {
+        $relativeName = [System.IO.Path]::GetRelativePath($root, $source.FullName).Replace([System.IO.Path]::DirectorySeparatorChar, '-')
+        Invoke-AzChecked @('bicep', 'build-params', '--file', $source.FullName, '--outfile', (Join-Path $artifacts "$relativeName.json"))
+        Write-Host "PASS: parametri pattern $([System.IO.Path]::GetRelativePath($root, $source.FullName))"
+    }
 }
 foreach ($environment in @('dev', 'test', 'prod')) {
     $parameterOutput = Join-Path $artifacts "$environment.parameters.json"

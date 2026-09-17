@@ -3,7 +3,7 @@ using '../main.bicep'
 param environment = 'test'
 param location = 'italynorth'
 param workload = 'demo'
-param owner = 'metix-platform'
+param owner = 'platform-team'
 param costCenter = 'workshop'
 param storageSku = 'Standard_LRS'
 param logRetentionInDays = 30

@@ -1,5 +1,5 @@
 ---
-description: "Aggiorna la guida architetturale Metix usando il Bicep effettivo e distinguendo configurazione da prove live."
+description: "Aggiorna la guida architetturale il team usando il Bicep effettivo e distinguendo configurazione da prove live."
 agent: agent
 ---
 

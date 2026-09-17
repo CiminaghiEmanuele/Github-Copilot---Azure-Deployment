@@ -43,7 +43,7 @@ function Assert-WorkloadGoal {
     if ($Provisioning) {
         if ($Goal.purpose -ne 'customer') { throw 'Il goal di riferimento non autorizza preview o provisioning. Configurare un goal cliente.' }
         if ([string]::IsNullOrWhiteSpace($CustomerCode) -or $Goal.customerCode -cne $CustomerCode) {
-            throw 'Cliente diverso dal binding METIX_CUSTOMER_CODE dell environment protetto.'
+            throw 'Cliente diverso dal binding CUSTOMER_CODE dell environment protetto.'
         }
         if ([string]::IsNullOrWhiteSpace($TargetEnvironment) -or $TargetEnvironment -cnotin $Goal.environments) {
             throw 'Ambiente non incluso nel goal cliente.'

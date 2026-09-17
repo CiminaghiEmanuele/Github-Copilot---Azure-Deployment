@@ -2,10 +2,10 @@
   "$schema": "./goal.schema.json",
   "schemaVersion": 1,
   "purpose": "reference",
-  "customerCode": "metix-reference",
+  "customerCode": "reference-customer",
   "workload": "demo",
   "objective": "Dimostrare un processo IaC controllato per predisporre Key Vault e Storage Blob privati in un ambiente didattico dedicato, senza applicazioni o dati cliente.",
-  "owner": "metix-platform",
+  "owner": "platform-team",
   "environments": ["dev"],
   "constraints": {
     "dataClassification": "Solo configurazione infrastrutturale; nessun dato cliente o segreto di esempio.",
@@ -25,7 +25,7 @@
         "method": "automated",
         "path": "scripts/Test-Baseline.ps1",
         "evidence": "Log CI con build, guardrail e test negativi dello SHA della PR.",
-        "owner": "metix-platform"
+        "owner": "platform-team"
       }
     },
     {
@@ -37,7 +37,7 @@
         "method": "automated",
         "path": "scripts/Test-DeployedResources.ps1",
         "evidence": "Run di deploy e log post-check collegati a commit, subscription, RG e ambiente effettivi.",
-        "owner": "metix-platform"
+        "owner": "platform-team"
       }
     },
     {
@@ -49,7 +49,7 @@
         "method": "manual",
         "path": "docs/operations.md",
         "evidence": "Verbale di prova con client/rete, indirizzi attesi e osservati, data, target e referente; nessuna prova live ancora effettuata.",
-        "owner": "metix-network"
+        "owner": "network-team"
       }
     }
   ]

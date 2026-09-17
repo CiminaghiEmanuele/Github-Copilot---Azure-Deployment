@@ -4,6 +4,23 @@ Il repository **descrive** un workload, non prova che sia gia' stato distribuito
 Scope dell'entry point: Resource Group. Il RG e le identita di automazione vengono preparati separatamente.
 Azure public cloud, Italy North; non sono validati cloud sovrani o reti con DNS centralizzato esistente.
 
+Questo e' il primo pattern della [factory multi-cliente](factory.md), non l'architettura obbligatoria
+di ogni cliente. I nuovi workload partono dal proprio goal e richiedono un piano e test specifici.
+La factory aggiunge agenti Copilot, contratto del goal e gate di pipeline senza aggiungere risorse
+Azure al pattern. Il goal di riferimento incluso non autorizza preview o provisioning.
+
+## Tracciabilita del riferimento
+
+| Requisito | Scelta implementata | Verifica | Limite |
+| --- | --- | --- | --- |
+| REQ-001 | Guardrail sui wrapper AVM compilati | Test-Baseline in CI e test negativi | Non interpreta genericamente ARM e non prova il risultato live |
+| REQ-002 | Proprieta KV/Storage, tag e connessioni PE | Test-DeployedResources dopo deploy | Solo management plane, nessuna operazione dati |
+| REQ-003 | Zone private e link VNet | Runbook DNS/TCP da client privato | Manuale, client non incluso, non prova autorizzazione applicativa |
+
+I criteri esatti sono nel [goal](../workload/goal.json). Questa matrice descrive copertura pianificata,
+non esecuzione o accettazione: non sono state eseguite prove Azure. Nel repository cliente sostituirla
+con requisiti e scelte approvati, senza ereditare esiti dal riferimento.
+
 ## Componenti
 
 ```mermaid
@@ -111,7 +128,11 @@ Gli endpoint LAW rimangono pubblici autenticati: il kit non include Azure Monito
 
 CI locale -> preview autenticata del commit proposto -> review/merge -> nuova preview del commit main
 -> approvazione environment -> deploy dello stesso artifact compilato -> post-check di management plane.
-Il deploy verifica che subscription, RG, ambiente e commit corrispondano al piano.
+La preview controlla goal e parametri con il validatore/schema del commit main fidato, prima del login.
+Il deploy verifica che subscription, RG, ambiente, commit, cliente e hash del goal corrispondano al piano.
+CUSTOMER_CODE proviene dall'environment protetto; la sua corrispondenza amministrativa al
+target Azure deve essere verificata nel bootstrap. Il codice cliente non e' un confine di sicurezza RBAC.
+Il riepilogo finale ricorda le prove manuali ma non ne attesta l'esecuzione o l'accettazione del goal.
 Non blocca il drift Azure tra preview e applicazione; se l'approvazione e' vecchia, rifare la run.
 
 La modalita Incremental conserva risorse non piu' dichiarate, ma puo' comunque cambiare o rimuovere

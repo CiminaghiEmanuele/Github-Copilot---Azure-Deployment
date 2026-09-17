@@ -6,7 +6,7 @@ Questo kit e' una baseline didattica, non una certificazione di sicurezza o di i
 
 Non pubblicare vulnerabilita, token o dati cliente nelle issue pubbliche.
 Usare la segnalazione privata delle vulnerabilita di GitHub, se abilitata, oppure il canale interno
-di sicurezza che Metix dovra' indicare nella checklist di consegna.
+di sicurezza che il team dovra' indicare nella checklist di consegna.
 Fornire componente, versione/commit, impatto, riproduzione minima e mitigazione senza allegare segreti.
 
 ## Se un segreto e' stato esposto

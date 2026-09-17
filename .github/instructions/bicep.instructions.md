@@ -1,9 +1,9 @@
 ---
-description: "Use when creating or reviewing Bicep infrastructure, AVM modules and environment parameters for the Metix demo."
+description: "Use when creating or reviewing Bicep infrastructure, AVM modules and environment parameters for the il team demo."
 applyTo: "infra/**/*.bicep,infra/**/*.bicepparam,bicepconfig.json"
 ---
 
-# Bicep Metix
+# Bicep Azure
 
 - Use the existing modules as ownership boundaries: network, monitoring, private access and services.
 - Use one parameter file per environment, not copies of the infrastructure code.
