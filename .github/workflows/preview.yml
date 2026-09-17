@@ -38,7 +38,7 @@ jobs:
       - name: Local checks without Azure credentials
         shell: pwsh
         run: ./scripts/Test-Repository.ps1
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: preview-template
           path: |
@@ -89,7 +89,7 @@ jobs:
           az deployment group what-if --resource-group $env:RESOURCE_GROUP --template-file .artifacts/main.json --parameters "@.artifacts/$env:TARGET_ENVIRONMENT.parameters.json" --validation-level ProviderNoRbac --no-pretty-print --output json > .artifacts/what-if.json
           if ($LASTEXITCODE -ne 0) { throw 'What-If fallito.' }
           "## Azure Preview`nCliente: $env:CUSTOMER_CODE`nCommit: $env:SOURCE_COMMIT`nEnvironment: $env:TARGET_ENVIRONMENT`nResource Group: $env:RESOURCE_GROUP`nEsaminare l'artefatto preview-results e collegare questa run alla PR. Nessun deployment eseguito." >> $env:GITHUB_STEP_SUMMARY
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: preview-results
