@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "projectName": "{{PROJECT_NAME}}",
+  "customerCode": "{{CUSTOMER_CODE}}",
+  "workload": "{{WORKLOAD}}",
+  "owner": "{{OWNER}}",
+  "status": "discovery",
+  "environments": ["dev"],
+  "createdFrom": "projects/_template",
+  "lastReviewed": "TBD",
+  "notes": "Non inserire segreti, tenant ID o subscription ID. Aggiornare dopo discovery e approvazione piano."
+}

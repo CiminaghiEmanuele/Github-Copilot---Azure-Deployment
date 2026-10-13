@@ -50,11 +50,31 @@ flowchart TD
 | [infra/main.bicep](infra/main.bicep) | Entry point Bicep a scope Resource Group. |
 | [infra/modules/](infra/modules/) | Moduli Bicep che compongono rete, accesso privato, servizi e monitoraggio. |
 | [infra/parameters/](infra/parameters/) | Parametri DEV/TEST/PROD di esempio o del workload. |
+| [projects/](projects/) | Pacchetti progetto con IaC, documentazione, test previsti ed evidenze per nuove richieste Azure. |
 | [scripts/](scripts/) | Build, validazione goal, guardrail e post-check. |
 | [docs/](docs/) | Factory, architettura, bootstrap, deployment, operations, workshop e consegna. |
 | [.github/](.github/) | Istruzioni Copilot, agenti, prompt e workflow GitHub Actions. |
 
 Il goal incluso ha `purpose: reference`: serve a dimostrare il processo e passa i controlli locali, ma viene rifiutato dai gate autenticati prima del login Azure. Per un cliente reale va sostituito con un goal `customer` revisionato.
+
+## Nuovi progetti in `projects/`
+
+Quando una conversazione parte da "devo creare questa infrastruttura Azure", Copilot deve prima fare
+domande guidate e poi preparare un pacchetto sotto `projects/<nome-progetto>/` con:
+
+- `iac/` per Bicep/AVM e parametri non sensibili;
+- `docs/` per discovery, architettura, piano di delivery, stima e accettazione;
+- `tests/` per verifiche automatiche/manuali collegate ai requisiti;
+- `evidence/` per riferimenti alle prove reali raccolte;
+- `project.json` per metadati non sensibili e stato del progetto.
+
+Creazione rapida dal template:
+
+```powershell
+pwsh -File scripts/New-Project.ps1 -ProjectName contoso-portale -CustomerCode contoso -Workload portal -Owner platform-team
+```
+
+Il flusso completo e le domande minime sono in [docs/project-factory.md](docs/project-factory.md).
 
 ## Modello cliente e progetto
 
@@ -116,11 +136,12 @@ Leggere nell'ordine:
 
 1. [docs/getting-started.md](docs/getting-started.md)
 2. [docs/factory.md](docs/factory.md)
-3. [docs/standards.md](docs/standards.md)
-4. [docs/architecture.md](docs/architecture.md)
-5. [docs/copilot.md](docs/copilot.md)
-6. [docs/deployment.md](docs/deployment.md)
-7. [docs/operations.md](docs/operations.md)
+3. [docs/project-factory.md](docs/project-factory.md)
+4. [docs/standards.md](docs/standards.md)
+5. [docs/architecture.md](docs/architecture.md)
+6. [docs/copilot.md](docs/copilot.md)
+7. [docs/deployment.md](docs/deployment.md)
+8. [docs/operations.md](docs/operations.md)
 
 Per validare localmente senza creare risorse:
 

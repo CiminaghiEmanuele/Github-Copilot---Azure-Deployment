@@ -63,7 +63,7 @@ foreach ($script in Get-ChildItem $PSScriptRoot -Filter '*.ps1') {
 Write-Host 'PASS: sintassi PowerShell.'
 
 if (-not $SkipDocumentation) {
-    $documents = @(Get-ChildItem $root -Filter '*.md') + @(Get-ChildItem (Join-Path $root 'docs') -Recurse -Filter '*.md') + @(Get-ChildItem (Join-Path $root '.github') -Recurse -Filter '*.md')
+    $documents = @(Get-ChildItem $root -Filter '*.md') + @(Get-ChildItem (Join-Path $root 'docs') -Recurse -Filter '*.md') + @(Get-ChildItem (Join-Path $root '.github') -Recurse -Filter '*.md') + @(Get-ChildItem (Join-Path $root 'projects') -Recurse -Filter '*.md')
     foreach ($document in $documents) {
         $content = Get-Content $document.FullName -Raw
         foreach ($link in [regex]::Matches($content, '\[[^\]]+\]\(([^)]+)\)')) {

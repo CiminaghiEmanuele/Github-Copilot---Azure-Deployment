@@ -9,6 +9,7 @@ deterministici decidono se una modifica puo' procedere. Non inserire segreti o d
 - [Istruzioni Bicep](../.github/instructions/bicep.instructions.md): file infra e parametri.
 - [Istruzioni workflow](../.github/instructions/workflows.instructions.md): pipeline GitHub Actions.
 - [Plan](../.github/agents/plan.agent.md) e [Build](../.github/agents/build.agent.md): progettazione e implementazione separate.
+- [Project factory](project-factory.md): domande guidate e struttura `projects/<nome-progetto>/` per nuovi pacchetti IaC/documentazione.
 - [Goal](../workload/goal.json): contratto del singolo cliente/workload, inizialmente un riferimento non distribuibile.
 - Prompt in [.github/prompts](../.github/prompts/): task espliciti riusabili in VS Code.
 
@@ -20,9 +21,13 @@ carichi gli stessi file. Aggiungere esplicitamente standard e architettura quand
 
 ## Partire dal goal del cliente
 
-Seguire [factory](factory.md) per il percorso completo e un esempio di richiesta. Nel menu agenti
+Seguire [factory](factory.md) e [project factory](project-factory.md) per il percorso completo e un esempio di richiesta. Nel menu agenti
 della chat VS Code selezionare **Plan**, descrivere il risultato richiesto e rispondere alle
 domande su dati, rete, carico, disponibilita, recovery, budget e risorse esistenti.
+
+Per creare direttamente un pacchetto progetto, usare il prompt `/new-project` oppure chiedere a Copilot
+di avviare un nuovo progetto Azure. L'assistente deve chiedere almeno nome progetto, codice cliente non
+sensibile, workload e owner prima di creare `projects/<nome-progetto>/`.
 
 Plan puo' leggere/cercare/consultare il web, ma non modifica file o esegue comandi. Propone
 architettura, alternative e criteri misurabili, senza imporre i servizi della demo. Dopo approvazione
@@ -46,6 +51,7 @@ Nella chat digitare `/` e scegliere il nome del prompt, oppure usare `Chat: Run 
 
 | Prompt | Uso | Modifiche previste |
 | --- | --- | --- |
+| `/new-project` | Avviare discovery e creare `projects/<nome-progetto>/` con IaC e documentazione | Progetto sotto `projects/` dopo dati minimi |
 | `/propose-workload` | Proporre una modifica coerente con goal, assunzioni, test e tradeoff | Nessuna |
 | `/review-waf` | Review con finding prioritizzati e riferimenti al codice | Nessuna |
 | `/document-architecture` | Allineare la guida al Bicep reale | Solo documentazione |

@@ -1,6 +1,7 @@
 # Azure Infrastructure Rules
 
 - This is a template for one private repository per customer/workload. Read [factory](../docs/factory.md) and [goal](../workload/goal.json) before customer-specific work.
+- If a user starts by describing the Azure infrastructure they need, begin with guided discovery questions and prepare a new workspace under `projects/<project-name>/` after the project name is known. Keep project-specific IaC under `projects/<project-name>/iac/` and sellable/project documentation under `projects/<project-name>/docs/`. Use [project factory](../docs/project-factory.md) for the intake sequence and folder contract.
 - Start from the customer's observable goal, constraints and measurable acceptance criteria. Do not force the included private-PaaS demo onto unrelated workloads.
 - Propose architecture and tests before code. Require human approval of the plan; never write self-approval or fabricated passing evidence into a goal or report.
 - Keep identities, OIDC trust, scopes, configuration and evidence isolated per customer/environment. A goal customer code must match CUSTOMER_CODE in the protected environment.
